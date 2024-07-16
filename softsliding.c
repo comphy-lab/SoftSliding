@@ -25,7 +25,7 @@
 #define tsnap (0.01)
 
 // Initialization!
-#define Xdist (1.040)
+#define Xdist (1.004)
 #define R2Drop(x,y,z) (sq(x - Xdist) + sq(y))
 // domain
 #define Ldomain 8                                // Dimension of the domain
