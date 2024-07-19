@@ -3,9 +3,20 @@ intermediate*
 restart*
 dump*
 intermediate/*
+intermediate*/*
 Video*
 *.mp4 
 */*.mp4
+log
+log_restart
+equilibriumSolution
+.qcc*
+*.html
+
+# do not remove the .c file -- but remove the binary ones
+equilibrium
+softsliding 
+
 # Prerequisites
 *.d
 
