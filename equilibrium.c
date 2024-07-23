@@ -3,8 +3,8 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 0.0
-# Updated: Jul 19, 2024
+# Version 0.1
+# Updated: Jul 23, 2024
 
 In this code, we will let a viscous liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
@@ -17,8 +17,8 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 
 #include "navier-stokes/centered.h"
 #define FILTERED
-#include "two-phase-elasticTF.h"
-#include "log-conform-elasticTF.h"
+#include "three-phase-nonCoalescing-elastic.h"
+#include "log-conform-elastic.h"
 #include "tension.h"
 
 // Error tolerances
@@ -37,6 +37,7 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 u.t[left] = dirichlet(0.0);
 f1[left] = dirichlet(0.0);
 f2[left] = dirichlet(1.0);
+
 u.n[right] = neumann(0.0);
 p[right] = dirichlet(0.0);
 
@@ -78,11 +79,11 @@ int main(int argc, char const *argv[]) {
   init_grid (1 << (MINlevel));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd; 
+  rho1 = 1.0; mu1 = Ohd; G1 = 0.;
   // film
   rho2 = 1.0; mu2 = Ohf; G2 = Ec;
   // air
-  rho3 = RhoA; mu3 = OhA;
+  rho3 = RhoA; mu3 = OhA; G3 = 0.;
 
   f1.sigma = 1.0; f2.sigma = 1.0;
 

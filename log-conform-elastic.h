@@ -1,8 +1,10 @@
-/** Title: log-conform-elasticTF.h
+/** Title: log-conform-elastic.h
+# Version: 10.0
+# Main feature: A exists in across the domain but stress only acts according to G.
 # Author: Vatsal Sanjay
 # vatsalsanjay@gmail.com
 # Physics of Fluids
-# Updated: Dec 17, 2023
+# Updated: Jul 23, 2024
 */
 
 // The code is same as http://basilisk.fr/src/log-conform.h but written for purely elastic limit (lambda \to \infty)
@@ -157,20 +159,18 @@ event tracer_advection(i++)
         $$
       */
 
-      double fa = (sf2[] > 1e-6) ? 1.0: 0.0;
-
       pseudo_t A;
-      A.x.y = fa*conform_p.x.y[];
+      A.x.y = conform_p.x.y[];
 
       foreach_dimension()
-        A.x.x = (fa != 0 ? fa*conform_p.x.x[]: 1.);
+        A.x.x = conform_p.x.x[];
       /**
        In the axisymmetric case, $\Psi_{\theta \theta} = \log A_{\theta
        \theta}$. Therefore $\Psi_{\theta \theta} = \log [ ( 1 + \text{fa}
        \tau_{p_{\theta \theta}})]$. */
 
 #if AXI
-      double Aqq = (fa != 0 ? fa*conform_qq[]: 1.); 
+      double Aqq = conform_qq[]; 
       Psiqq[] = log (Aqq); 
 #endif
 
@@ -180,7 +180,7 @@ event tracer_advection(i++)
       tensor, $\Lambda$. */
 
       pseudo_v Lambda;
-      pseudo_t R; 
+      pseudo_t R;
       diagonalization_2D (&Lambda, &R, &A);
       
       /**
@@ -290,19 +290,17 @@ event tracer_advection(i++)
 
       /**
         Then the Conformation tensor $\mathcal{A}_p^{n+1}$ is restored from
-        $\mathbf{A}^{n+1}$.  */
-      
-      double fa = (sf2[] > 1e-6) ? 1.0: 0.0;
-      
-      conform_p.x.y[] = fa*A.x.y;
+        $\mathbf{A}^{n+1}$.  */    
+        
+      conform_p.x.y[] = A.x.y;
       tau_p.x.y[] = Gp[]*A.x.y;
 #if AXI
-      conform_qq[] = fa != 0.0 ? fa*(Aqq): 1.0;
+      conform_qq[] = Aqq;
       tau_qq[] = Gp[]*(Aqq - 1.);
 #endif
 
       foreach_dimension(){
-        conform_p.x.x[] = fa != 0.0 ? fa*(A.x.x): 1.0;
+        conform_p.x.x[] = A.x.x;
         tau_p.x.x[] = Gp[]*(A.x.x - 1.);
       }
 
