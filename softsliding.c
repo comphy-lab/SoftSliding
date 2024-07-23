@@ -3,16 +3,16 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 0.1
-# Updated: Jul 19, 2024
+# Version 0.2
+# Updated: Jul 23, 2024
 */
 
 // 1 is drop, 2 is film and 3 is air
 
 #include "navier-stokes/centered.h"
 #define FILTERED
-#include "two-phase-elasticTF.h"
-#include "log-conform-elasticTF.h"
+#include "three-phase-nonCoalescing-elastic.h"
+#include "log-conform-elastic.h"
 #include "tension.h"
 
 // Error tolerances
@@ -71,11 +71,11 @@ int main(int argc, char const *argv[]) {
   init_grid (1 << (MINlevel));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd; 
+  rho1 = 1.0; mu1 = Ohd; G1 = 0.;
   // film
   rho2 = 1.0; mu2 = Ohf; G2 = Ec;
   // air
-  rho3 = RhoA; mu3 = OhA;
+  rho3 = RhoA; mu3 = OhA; G3 = 0.;
 
   f1.sigma = 1.0; f2.sigma = 1.0;
 
@@ -89,7 +89,7 @@ event acceleration(i++){
     av.x[] -= Bond*cos(alphaAngle);
   }
   foreach_face(y){
-    av.y[] += f1[]*Bond*sin(alphaAngle); // FIXME: @Jnan: how do you ensure that your film does not drain?
+    av.y[] += f1[]*Bond*sin(alphaAngle); // applying an effective gravity to move the drop! ## TODO FIXME: is there a better way to only move the drop?
   }
 }
 
