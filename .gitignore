@@ -4,7 +4,7 @@ restart*
 dump*
 intermediate/*
 intermediate*/*
-Video*
+#Video*
 *.mp4 
 */*.mp4
 log
