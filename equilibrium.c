@@ -26,7 +26,7 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 #define KErr (1e-4) // error tolerance in KAPPA
 #define VelErr (1e-2) // error tolerances in velocity
 #define AErr (1e-3) // error tolerance in Conformation tensor
-#define MINlevel 4 // minimum level
+#define MINlevel 9 // minimum level
 #define tsnap (0.1)
 
 // Initialization!
