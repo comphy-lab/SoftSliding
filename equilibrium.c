@@ -26,7 +26,7 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 #define KErr (1e-4) // error tolerance in KAPPA
 #define VelErr (1e-2) // error tolerances in velocity
 #define AErr (1e-3) // error tolerance in Conformation tensor
-#define MINlevel 9 // minimum level
+#define MINlevel 6 // minimum level
 #define tsnap (0.1)
 
 // Initialization!
@@ -76,7 +76,7 @@ int main(int argc, char const *argv[]) {
 
   L0=Ldomain;
   X0=-hf; Y0=-2.0;
-  init_grid (1 << (MINlevel));
+  init_grid (1 << (9));
 
   // drop
   rho1 = 1.0; mu1 = Ohd; G1 = 0.;
