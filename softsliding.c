@@ -3,8 +3,11 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 0.2
-# Updated: Jul 23, 2024
+# Version 1.0
+# Updated: Aug 5, 2024
+
+# changelog Aug 5, 2024
+* This code uses the reduced gravity formulation described here: (https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034)[https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034]
 */
 
 // 1 is drop, 2 is film and 3 is air
@@ -14,6 +17,7 @@
 #include "three-phase-nonCoalescing-elastic.h"
 #include "log-conform-elastic.h"
 #include "tension.h"
+#include "reduced-three-phase-nonCoalescing.h"
 
 // Error tolerances
 #define fErr (1e-3) // error tolerance in VOF
@@ -68,7 +72,7 @@ int main(int argc, char const *argv[]) {
 
   L0=Ldomain;
   X0=-hf; Y0=-2.0;
-  init_grid (1 << (MINlevel));
+  init_grid (1 << (9));
 
   // drop
   rho1 = 1.0; mu1 = Ohd; G1 = 0.;
@@ -79,19 +83,17 @@ int main(int argc, char const *argv[]) {
 
   f1.sigma = 1.0; f2.sigma = 1.0;
 
+  // for sliding
+  Bf1.x = -Bond*cos(alphaAngle);
+  Bf2.x = -Bond*cos(alphaAngle);
+
+  Bf1.y = -Bond*sin(alphaAngle);
+  Bf2.y = -Bond*sin(alphaAngle);
+
   run();
 
 }
 
-event acceleration(i++){
-  face vector av = a;
-  foreach_face(x){
-    av.x[] -= Bond*cos(alphaAngle);
-  }
-  foreach_face(y){
-    av.y[] += f1[]*Bond*sin(alphaAngle); // applying an effective gravity to move the drop! ## TODO FIXME: is there a better way to only move the drop?
-  }
-}
 
 event init(t = 0){
   if (!restore (file = "restart")) {
