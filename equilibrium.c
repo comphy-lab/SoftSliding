@@ -3,11 +3,14 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 1.0
-# Updated: Aug 5, 2024
+# Version 1.1
+# Updated: Aug 10, 2024
 
 # changelog Aug 5, 2024
 * This code uses the reduced gravity formulation described here: (https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034)[https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034]
+
+# changelog Aug 10, 2024
+* Decreased domain size. The drop is now at the center of the domain. Run this version to get the equilibrium shape of the drop+film, export the interface as .dat file that could be directly/indirectly read into the softsliding.c code. ## TODO: Jnandeep....
 
 In this code, we will let a viscous liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
@@ -73,13 +76,13 @@ int main(int argc, char const *argv[]) {
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
   Bond = 1e0; // Bond number: we will keep this fixed
-  alphaAngle = pi*atof(argv[5])/180; // inclination angle of the drop: user should define in degrees. 10-60 degrees for the initial runs. 
-  Ldomain = 32.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
+  alphaAngle = 0.0; // Bond is essentially an effective Bond number Bo*cos(alpha) //pi*atof(argv[5])/180; // inclination angle of the drop: user should define in degrees. 10-60 degrees for the initial runs. 
+  Ldomain = 8.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
   fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
 
   L0=Ldomain;
-  X0=-hf; Y0=-2.0;
+  X0=-hf; Y0=-L0/2.0;
   init_grid (1 << (9));
 
   // drop
@@ -92,8 +95,8 @@ int main(int argc, char const *argv[]) {
   f1.sigma = 1.0; f2.sigma = 1.0;
 
   // only to get the equilibrium shape
-  Bf1.x = -Bond*cos(alphaAngle);
-  Bf2.x = -Bond*cos(alphaAngle);
+  Bf1.x = -Bond; //*cos(alphaAngle);
+  Bf2.x = -Bond; //*cos(alphaAngle);
 
   run();
 
