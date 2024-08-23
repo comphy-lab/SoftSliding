@@ -58,7 +58,7 @@ double tmax;
 double Ohd; 
 // Film
 double Ohf, hf, Ec; // De is \infty
-double Bond, alphaAngle;
+double Bond;
 double Ldomain;
 // air
 #define RhoA (1e-3)
@@ -79,11 +79,10 @@ int main(int argc, char const *argv[]) {
   Ohf = 1e0;
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
-  Bond = 1e0; // Bond number: we will keep this fixed
-  alphaAngle = 0.0; // Bond is essentially an effective Bond number Bo*cos(alpha) //pi*atof(argv[5])/180; // inclination angle of the drop: user should define in degrees. 10-60 degrees for the initial runs. 
+  Bond = atof(argv[5]); // Bond number: we will keep this fixed
   Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
-  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
+  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
 
   L0=Ldomain;
   X0=-hf; Y0=0.0;
@@ -148,7 +147,7 @@ event logWriting (i++) {
     if (i == 0) {
       fprintf (ferr, "i dt t ke vcmNormal\n");
       fp = fopen ("log_restart", "w");
-      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
+      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
       fprintf (fp, "i dt t ke vcm\n");
     } else {
       fp = fopen ("log_restart", "a");
