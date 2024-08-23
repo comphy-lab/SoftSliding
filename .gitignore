@@ -15,6 +15,7 @@ equilibriumSolution
 
 # do not remove the .c file -- but remove the binary ones
 equilibrium
+equilibrium_axi
 softsliding 
 
 # Prerequisites
