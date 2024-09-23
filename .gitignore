@@ -12,6 +12,7 @@ log_restart
 equilibriumSolution
 .qcc*
 *.html
+equilibrium_axi_ViscoElastic
 
 # do not remove the .c file -- but remove the binary ones
 equilibrium
