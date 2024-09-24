@@ -3,8 +3,8 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 3.0
-# Updated: Sep 22, 2024
+# Version 1.1
+# Updated: Aug 10, 2024
 
 # changelog Aug 5, 2024
 * This code uses the reduced gravity formulation described here: (https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034)[https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034]
@@ -36,7 +36,6 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 
 // 1 is drop, 2 is film and 3 is air
 
-#include "axi.h"
 #include "navier-stokes/centered.h"
 #define FILTERED
 #include "three-phase-nonCoalescing-elastic.h"
@@ -70,7 +69,7 @@ double tmax;
 double Ohd; 
 // Film
 double Ohf, hf, Ec; // De is \infty
-double Bond;
+double Bond, alphaAngle;
 double Ldomain;
 // air
 #define RhoA (1e-3)
@@ -91,27 +90,28 @@ int main(int argc, char const *argv[]) {
   Ohf = 1e0;
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
-  Bond = atof(argv[5]); // Bond number: we will keep this fixed
+  Bond = 1e0; // Bond number: we will keep this fixed
+  alphaAngle = 0.0; // Bond is essentially an effective Bond number Bo*cos(alpha) //pi*atof(argv[5])/180; // inclination angle of the drop: user should define in degrees. 10-60 degrees for the initial runs. 
   Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
-  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
+  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
 
   L0=Ldomain;
   X0=-hf; Y0=0.0;
   init_grid (1 << (9));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd/sqrt(Ec); G1 = 0.;
+  rho1 = 1.0; mu1 = Ohd; G1 = 0.;
   // film
-  rho2 = 1.0; mu2 = Ohf/sqrt(Ec); G2 = 1e0;
+  rho2 = 1.0; mu2 = Ohf; G2 = Ec;
   // air
-  rho3 = RhoA; mu3 = OhA/sqrt(Ec); G3 = 0.;
+  rho3 = RhoA; mu3 = OhA; G3 = 0.;
 
-  f1.sigma = 1.0/Ec; f2.sigma = 1.0/Ec;
+  f1.sigma = 1.0; f2.sigma = 1.0;
 
   // only to get the equilibrium shape
-  Bf1.x = -Bond/Ec; //*cos(alphaAngle);
-  Bf2.x = -Bond/Ec; //*cos(alphaAngle);
+  Bf1.x = -Bond; //*cos(alphaAngle);
+  Bf2.x = -Bond; //*cos(alphaAngle);
 
   run();
 
@@ -159,7 +159,7 @@ event logWriting (i++) {
     if (i == 0) {
       fprintf (ferr, "i dt t ke vcmNormal\n");
       fp = fopen ("log_restart", "w");
-      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
+      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
       fprintf (fp, "i dt t ke vcm\n");
     } else {
       fp = fopen ("log_restart", "a");

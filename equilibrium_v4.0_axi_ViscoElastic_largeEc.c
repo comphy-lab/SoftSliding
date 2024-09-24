@@ -3,16 +3,31 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 1.1
-# Updated: Aug 10, 2024
+# Version 4.0
+# Updated: Sep 24, 2024
 
 # changelog Aug 5, 2024
 * This code uses the reduced gravity formulation described here: (https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034)[https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034]
 
-# changelog Aug 10, 2024
+# changelog Aug 10, 2024 v1.1
 * Decreased domain size. The drop is now at the center of the domain. Run this version to get the equilibrium shape of the drop+film, export the interface as .dat file that could be directly/indirectly read into the softsliding.c code. ## TODO: Jnandeep....
 
-In this code, we will let a viscous liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
+# changelog Aug 23, 2024 v2.0 (Ec \leq 10 works well)
+This code is in axi. The log-conform-elastic.h is already compatible with axi.  -- this version is prefered for purely elastic films with Ec < 1 (maybe even 10).
+
+# changelog Sep 22, 2024 v3.0 (very slow!)
+#axi
+This code supports very large Ec. This is done by renormalizing the equations such that the elastic modulus is always 1. (it is very slow!)
+
+# changelog Sep 22, 2024 v2.1 (arbitary De)
+#axi
+Here, we oblitrate v3.0 and then add viscoelasticity. Hopefully, with large enough De, the system would mimic purely elastic behavior. -- this version is prefered for viscoelastic films at arbitary De. 
+
+# changelog Sep 24, 2024 v4.0 (Ec \gg 1, use with De \gg 1 for elastic solids)
+#axi
+Here, we combine v2.1 and v3.0. -- this is the prefereed version for viscoelastic films at large Ec, De. In the limit De -> \infty, this code should give an elastic film response.  
+
+In this code, we will let a viscous or viscoelastic liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
 
 The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run for every case that we are interested in for this project. 
@@ -21,10 +36,11 @@ The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run 
 
 // 1 is drop, 2 is film and 3 is air
 
+#include "axi.h"
 #include "navier-stokes/centered.h"
 #define FILTERED
-#include "three-phase-nonCoalescing-elastic.h"
-#include "log-conform-elastic.h"
+#include "three-phase-nonCoalescing-viscoelastic.h"
+#include "log-conform-viscoelastic.h"
 #include "tension.h"
 #include "reduced-three-phase-nonCoalescing.h"
 
@@ -53,8 +69,8 @@ double tmax;
 // Drop
 double Ohd; 
 // Film
-double Ohf, hf, Ec; // De is \infty
-double Bond, alphaAngle;
+double Ohf, hf, Ec, De; // De is \infty
+double Bond;
 double Ldomain;
 // air
 #define RhoA (1e-3)
@@ -75,22 +91,22 @@ int main(int argc, char const *argv[]) {
   Ohf = 1e0;
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
-  Bond = 1e0; // Bond number: we will keep this fixed
-  alphaAngle = 0.0; // Bond is essentially an effective Bond number Bo*cos(alpha) //pi*atof(argv[5])/180; // inclination angle of the drop: user should define in degrees. 10-60 degrees for the initial runs. 
+  Bond = atof(argv[5]); // Bond number: we will keep this fixed
+  De = atof(argv[6]); // Deborah number: needs to be a large enough number so that elastic effects are dominant. 
   Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
-  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
+  fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De %3.2f \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, De);
 
   L0=Ldomain;
   X0=-hf; Y0=0.0;
   init_grid (1 << (9));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd; G1 = 0.;
+  rho1 = 1.0; mu1 = Ohd; G1 = 0.; lambda1 = 0.;
   // film
-  rho2 = 1.0; mu2 = Ohf; G2 = Ec;
+  rho2 = 1.0; mu2 = Ohf; G2 = Ec; lambda2 = De;
   // air
-  rho3 = RhoA; mu3 = OhA; G3 = 0.;
+  rho3 = RhoA; mu3 = OhA; G3 = 0.; lambda3 = 0.;
 
   f1.sigma = 1.0; f2.sigma = 1.0;
 
@@ -144,7 +160,7 @@ event logWriting (i++) {
     if (i == 0) {
       fprintf (ferr, "i dt t ke vcmNormal\n");
       fp = fopen ("log_restart", "w");
-      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, alpha %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, alphaAngle);
+      fprintf(fp, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De %3.2f \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, De);
       fprintf (fp, "i dt t ke vcm\n");
     } else {
       fp = fopen ("log_restart", "a");
@@ -156,7 +172,7 @@ event logWriting (i++) {
   assert(ke > -1e-10);
   assert(ke < 1e2);
 
-  if (i > 100 && ke < 1e-6){
+  if (i > 100 && ke < 1e-10){
     dump(file = "equilibriumSolution");
     return 1;
   }
