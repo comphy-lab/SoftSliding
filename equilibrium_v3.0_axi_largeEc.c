@@ -26,6 +26,7 @@ Here, we oblitrate v3.0 and then add viscoelasticity. Hopefully, with large enou
 # changelog Sep 24, 2024 v4.0 (Ec \gg 1, use with De \gg 1 for elastic solids)
 #axi
 Here, we combine v2.1 and v3.0. -- this is the prefereed version for viscoelastic films at large Ec, De. In the limit De -> \infty, this code should give an elastic film response.  
+- must ensure that $De \gg \sqrt{Ec}$
 
 In this code, we will let a viscous or viscoelastic liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
@@ -92,7 +93,7 @@ int main(int argc, char const *argv[]) {
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
   Bond = atof(argv[5]); // Bond number: we will keep this fixed
-  Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
+  Ldomain = atof(argv[7]); // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
   fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
 

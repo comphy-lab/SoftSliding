@@ -25,7 +25,8 @@ Here, we oblitrate v3.0 and then add viscoelasticity. Hopefully, with large enou
 
 # changelog Sep 24, 2024 v4.0 (Ec \gg 1, use with De \gg 1 for elastic solids)
 #axi
-Here, we combine v2.1 and v3.0. -- this is the prefereed version for viscoelastic films at large Ec, De. In the limit De -> \infty, this code should give an elastic film response.  
+Here, we combine v2.1 and v3.0. -- this is the prefereed version for viscoelastic films at large Ec, De. In the limit De -> \infty, this code should give an elastic film response.
+- must ensure that $De \gg \sqrt{Ec}$
 
 In this code, we will let a viscous or viscoelastic liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
@@ -93,7 +94,7 @@ int main(int argc, char const *argv[]) {
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
   Bond = atof(argv[5]); // Bond number: we will keep this fixed
   De = atof(argv[6]); // Deborah number: needs to be a large enough number so that elastic effects are dominant. 
-  Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
+  Ldomain = atof(argv[7]); // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
   fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De %3.2f \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond, De);
 
@@ -102,17 +103,17 @@ int main(int argc, char const *argv[]) {
   init_grid (1 << (9));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd; G1 = 0.; lambda1 = 0.;
+  rho1 = 1.0; mu1 = Ohd/sqrt(Ec); G1 = 0.; lambda1 = 0.;
   // film
-  rho2 = 1.0; mu2 = Ohf; G2 = Ec; lambda2 = De;
+  rho2 = 1.0; mu2 = Ohf/sqrt(Ec); G2 = 1e0; lambda2 = De/sqrt(Ec);
   // air
-  rho3 = RhoA; mu3 = OhA; G3 = 0.; lambda3 = 0.;
+  rho3 = RhoA; mu3 = OhA/sqrt(Ec); G3 = 0.; lambda3 = 0.;
 
-  f1.sigma = 1.0; f2.sigma = 1.0;
+  f1.sigma = 1.0/Ec; f2.sigma = 1.0/Ec;
 
   // only to get the equilibrium shape
-  Bf1.x = -Bond; //*cos(alphaAngle);
-  Bf2.x = -Bond; //*cos(alphaAngle);
+  Bf1.x = -Bond/Ec; //*cos(alphaAngle);
+  Bf2.x = -Bond/Ec; //*cos(alphaAngle);
 
   run();
 
