@@ -3,19 +3,32 @@
 # vatsalsanjay@gmail.com
 # Physics of Fluids
 
-# Version 2.0
-# Updated: Aug 10, 2024
+# Version 3.0
+# Updated: Sep 22, 2024
 
 # changelog Aug 5, 2024
 * This code uses the reduced gravity formulation described here: (https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034)[https://www.annualreviews.org/content/journals/10.1146/annurev-fluid-122316-045034]
 
-# changelog Aug 10, 2024
+# changelog Aug 10, 2024 v1.1
 * Decreased domain size. The drop is now at the center of the domain. Run this version to get the equilibrium shape of the drop+film, export the interface as .dat file that could be directly/indirectly read into the softsliding.c code. ## TODO: Jnandeep....
 
-# changelog Aug 23, 2024
-This code is in axi. The log-conform-elastic.h is already compatible with axi. 
+# changelog Aug 23, 2024 v2.0 (Ec \leq 10 works well)
+This code is in axi. The log-conform-elastic.h is already compatible with axi.  -- this version is prefered for purely elastic films with Ec < 1 (maybe even 10).
 
-In this code, we will let a viscous liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
+# changelog Sep 22, 2024 v3.0 (very slow!)
+#axi
+This code supports very large Ec. This is done by renormalizing the equations such that the elastic modulus is always 1. (it is very slow!)
+
+# changelog Sep 22, 2024 v2.1 (arbitary De)
+#axi
+Here, we oblitrate v3.0 and then add viscoelasticity. Hopefully, with large enough De, the system would mimic purely elastic behavior. -- this version is prefered for viscoelastic films at arbitary De. 
+
+# changelog Sep 24, 2024 v4.0 (Ec \gg 1, use with De \gg 1 for elastic solids)
+#axi
+Here, we combine v2.1 and v3.0. -- this is the prefereed version for viscoelastic films at large Ec, De. In the limit De -> \infty, this code should give an elastic film response.  
+- must ensure that $De \gg \sqrt{Ec}$
+
+In this code, we will let a viscous or viscoelastic liquid drop rest on a soft solid film until it reaches an equilibrium state. The gravity in this case should be in the -x direction only.
 First run this code and then proceed with the code: softsliding.c. 
 
 The equilibrium state will depend on (\alpha, Bo, Ec)... So, it needs to be run for every case that we are interested in for this project. 
@@ -80,7 +93,7 @@ int main(int argc, char const *argv[]) {
   hf = atof(argv[3]); // ratio of the film thickness to the drop radius, log scale: 0.01--1 or so
   Ec = atof(argv[4]); // Elasto-capillary number: 1e-4 (very soft) to 1e3 (very stiff)
   Bond = atof(argv[5]); // Bond number: we will keep this fixed
-  Ldomain = 4.0; // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
+  Ldomain = atof(argv[7]); // Dimension of the domain: should be large enough to get a steady solution to drop velocity.
 
   fprintf(ferr, "Level %d tmax %g. Ohd %g, Ohf %3.2e, hf %3.2f, Ec %3.2f, Bo %3.2f, De infty \n", MAXlevel, tmax, Ohd, Ohf, hf, Ec, Bond);
 
@@ -89,17 +102,17 @@ int main(int argc, char const *argv[]) {
   init_grid (1 << (9));
 
   // drop
-  rho1 = 1.0; mu1 = Ohd; G1 = 0.;
+  rho1 = 1.0; mu1 = Ohd/sqrt(Ec); G1 = 0.;
   // film
-  rho2 = 1.0; mu2 = Ohf; G2 = Ec;
+  rho2 = 1.0; mu2 = Ohf/sqrt(Ec); G2 = 1e0;
   // air
-  rho3 = RhoA; mu3 = OhA; G3 = 0.;
+  rho3 = RhoA; mu3 = OhA/sqrt(Ec); G3 = 0.;
 
-  f1.sigma = 1.0; f2.sigma = 1.0;
+  f1.sigma = 1.0/Ec; f2.sigma = 1.0/Ec;
 
   // only to get the equilibrium shape
-  Bf1.x = -Bond; //*cos(alphaAngle);
-  Bf2.x = -Bond; //*cos(alphaAngle);
+  Bf1.x = -Bond/Ec; //*cos(alphaAngle);
+  Bf2.x = -Bond/Ec; //*cos(alphaAngle);
 
   run();
 
